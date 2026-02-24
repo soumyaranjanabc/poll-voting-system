@@ -1,0 +1,11 @@
+{
+  "name": "poll-voting-system",
+  "version": "1.0.0",
+  "description": "Full-stack poll voting system",
+  "scripts": {
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm start",
+    "setup:db": "psql -U postgres -c \"CREATE DATABASE poll_voting_db;\" && psql -U postgres -d poll_voting_db -f server/config/schema.sql"
+  }
+}

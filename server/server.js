@@ -7,7 +7,6 @@ const authRoutes = require('./routes/auth');
 const pollRoutes = require('./routes/polls');
 const voteRoutes = require('./routes/votes');
 const dsaRoutes  = require('./routes/dsa');
-
 const app = express();
 
 app.use(cors({
@@ -21,7 +20,6 @@ app.options('*', cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 app.use('/api/auth',  authRoutes);
 app.use('/api/polls', pollRoutes);
 app.use('/api/vote',  voteRoutes);

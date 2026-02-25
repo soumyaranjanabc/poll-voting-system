@@ -8,7 +8,7 @@ const generateToken = (userId) => {
   });
 };
 
-// POST /api/auth/register
+
 const register = async (req, res) => {
   try {
     const { name, email, password, role = 'user' } = req.body;
@@ -21,17 +21,16 @@ const register = async (req, res) => {
       return res.status(400).json({ message: 'Password must be at least 6 characters' });
     }
 
-    // Check if user already exists
     const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
     if (existing.rows.length > 0) {
       return res.status(409).json({ message: 'Email already registered' });
     }
 
-    // Hash password
+
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
 
-    // Only allow admin role if explicitly set (in production, restrict this)
+
     const userRole = ['admin', 'user'].includes(role) ? role : 'user';
 
     const result = await pool.query(
@@ -53,7 +52,7 @@ const register = async (req, res) => {
   }
 };
 
-// POST /api/auth/login
+
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -86,14 +85,13 @@ const login = async (req, res) => {
   }
 };
 
-// GET /api/auth/me
 const getMe = async (req, res) => {
   res.json({ user: req.user });
 };
 
 module.exports = { register, login, getMe };
 
-// POST /api/auth/forgot-password
+
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -125,7 +123,6 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-// POST /api/auth/reset-password/:token
 const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;

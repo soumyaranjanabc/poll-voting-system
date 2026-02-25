@@ -1,30 +1,3 @@
-/**
- * DOUBLY LINKED LIST
- * ──────────────────
- * Used for: Vote activity feed & navigable history
- *
- * Each node has data + pointer to NEXT and PREVIOUS node.
- * Unlike arrays, insertion/deletion at head/tail is O(1).
- *
- * Structure:
- *   null ← [prev|data|next] ↔ [prev|data|next] ↔ [prev|data|next] → null
- *           HEAD                                   TAIL
- *
- * Time Complexity:
- *   append()      → O(1)  — direct tail access
- *   prepend()     → O(1)  — direct head access
- *   delete()      → O(n)  — must find node first
- *   getRecent(n)  → O(n)  — traverse from tail backwards
- *   toArray()     → O(n)  — full traversal
- *
- * Space Complexity: O(n)
- *
- * Advantage over array:
- *   - O(1) insert at both ends (array prepend is O(n))
- *   - Can traverse both directions
- *   - No shifting needed on insert/delete
- */
-
 class Node {
   constructor(data) {
     this.data = data;
@@ -38,11 +11,9 @@ class DoublyLinkedList {
     this.head = null;
     this.tail = null;
     this.size = 0;
-    this.maxSize = maxSize; // cap to prevent memory overflow
+    this.maxSize = maxSize;
   }
 
-  // ── Append to tail ────────────────────────────────────
-  // O(1) — direct tail pointer access
   append(data) {
     const node = new Node(data);
 
@@ -56,7 +27,6 @@ class DoublyLinkedList {
 
     this.size++;
 
-    // Auto-evict oldest (head) if max size reached
     if (this.size > this.maxSize) {
       this.removeHead();
     }
@@ -64,8 +34,6 @@ class DoublyLinkedList {
     return this;
   }
 
-  // ── Prepend to head ───────────────────────────────────
-  // O(1)
   prepend(data) {
     const node = new Node(data);
 
@@ -81,8 +49,6 @@ class DoublyLinkedList {
     return this;
   }
 
-  // ── Remove head ───────────────────────────────────────
-  // O(1)
   removeHead() {
     if (!this.head) return null;
     const data = this.head.data;
@@ -98,8 +64,6 @@ class DoublyLinkedList {
     return data;
   }
 
-  // ── Remove tail ───────────────────────────────────────
-  // O(1)
   removeTail() {
     if (!this.tail) return null;
     const data = this.tail.data;
@@ -115,15 +79,13 @@ class DoublyLinkedList {
     return data;
   }
 
-  // ── Get N most recent items (traverse from tail backwards) ─
-  // O(n)
   getRecent(n) {
     const result = [];
     let current = this.tail;
     let count = 0;
 
     while (current && count < n) {
-      result.unshift(current.data); // prepend to maintain chronological order
+      result.unshift(current.data);
       current = current.prev;
       count++;
     }
@@ -131,8 +93,6 @@ class DoublyLinkedList {
     return result;
   }
 
-  // ── Forward traversal → array ─────────────────────────
-  // O(n)
   toArray() {
     const result = [];
     let current = this.head;
@@ -143,8 +103,6 @@ class DoublyLinkedList {
     return result;
   }
 
-  // ── Backward traversal → array ────────────────────────
-  // O(n)
   toArrayReverse() {
     const result = [];
     let current = this.tail;
@@ -155,8 +113,6 @@ class DoublyLinkedList {
     return result;
   }
 
-  // ── Search by poll_id ─────────────────────────────────
-  // O(n)
   findByPollId(pollId) {
     let current = this.head;
     while (current) {
@@ -166,12 +122,12 @@ class DoublyLinkedList {
     return null;
   }
 
-  isEmpty() { return this.size === 0; }
+  isEmpty() {
+    return this.size === 0;
+  }
 }
 
-// ── Singleton activity feed (in-memory) ───────────────
-// In production this would be persisted to Redis/DB
-const activityFeed = new DoublyLinkedList(50); // keep last 50 activities
+const activityFeed = new DoublyLinkedList(50);
 
 const addActivity = (activity) => {
   activityFeed.append({
@@ -182,4 +138,8 @@ const addActivity = (activity) => {
 
 const getRecentActivity = (n = 10) => activityFeed.getRecent(n);
 
-module.exports = { DoublyLinkedList, addActivity, getRecentActivity };
+module.exports = {
+  DoublyLinkedList,
+  addActivity,
+  getRecentActivity,
+};

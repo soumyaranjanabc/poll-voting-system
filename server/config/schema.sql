@@ -1,7 +1,4 @@
--- Poll Voting System Database Schema
--- Run this file to initialize the database
 
--- Create users table
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
@@ -11,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create polls table
+
 CREATE TABLE IF NOT EXISTS polls (
   id SERIAL PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
@@ -21,14 +18,13 @@ CREATE TABLE IF NOT EXISTS polls (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create poll_options table
 CREATE TABLE IF NOT EXISTS poll_options (
   id SERIAL PRIMARY KEY,
   poll_id INTEGER REFERENCES polls(id) ON DELETE CASCADE,
   option_text VARCHAR(255) NOT NULL
 );
 
--- Create votes table (prevents duplicate voting via UNIQUE constraint)
+
 CREATE TABLE IF NOT EXISTS votes (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -38,14 +34,13 @@ CREATE TABLE IF NOT EXISTS votes (
   UNIQUE(user_id, poll_id)
 );
 
--- Indexes for performance
+
 CREATE INDEX IF NOT EXISTS idx_votes_poll_id ON votes(poll_id);
 CREATE INDEX IF NOT EXISTS idx_votes_user_id ON votes(user_id);
 CREATE INDEX IF NOT EXISTS idx_poll_options_poll_id ON poll_options(poll_id);
 CREATE INDEX IF NOT EXISTS idx_polls_created_by ON polls(created_by);
 
--- Insert a default admin user (password: admin123)
--- bcrypt hash of 'admin123' with 10 rounds
+
 INSERT INTO users (name, email, password_hash, role)
 VALUES (
   'Admin',

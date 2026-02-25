@@ -1,7 +1,5 @@
 const pool = require('../config/db');
 const { recordVoteActivity } = require('./dsaController');
-
-// POST /api/vote
 const castVote = async (req, res) => {
   try {
     const { poll_id, option_id } = req.body;
@@ -33,8 +31,6 @@ const castVote = async (req, res) => {
       'INSERT INTO votes (user_id, poll_id, option_id) VALUES ($1, $2, $3)',
       [user_id, poll_id, option_id]
     );
-
-    // Record in Doubly Linked List activity feed
     recordVoteActivity(
       user_id,
       poll_id,
@@ -52,7 +48,6 @@ const castVote = async (req, res) => {
   }
 };
 
-// GET /api/votes/my
 const getMyVotes = async (req, res) => {
   try {
     const result = await pool.query(`

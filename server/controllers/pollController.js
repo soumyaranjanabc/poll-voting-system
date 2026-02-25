@@ -3,7 +3,7 @@ const fs = require('fs');
 const csv = require('csv-parser');
 const path = require('path');
 
-// GET /api/polls
+
 const getPolls = async (req, res) => {
   try {
     const result = await pool.query(`
@@ -21,7 +21,6 @@ const getPolls = async (req, res) => {
   }
 };
 
-// GET /api/polls/:id
 const getPollById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -43,7 +42,6 @@ const getPollById = async (req, res) => {
       [id]
     );
 
-    // Check if current user has voted (if authenticated)
     let userVote = null;
     if (req.user) {
       const voteResult = await pool.query(
@@ -66,7 +64,6 @@ const getPollById = async (req, res) => {
   }
 };
 
-// POST /api/polls  (admin only)
 const createPoll = async (req, res) => {
   const client = await pool.connect();
   try {
@@ -85,7 +82,6 @@ const createPoll = async (req, res) => {
 
     const poll = pollResult.rows[0];
 
-    // Insert options
     const insertedOptions = [];
     for (const optionText of options) {
       if (optionText.trim()) {
@@ -113,7 +109,6 @@ const createPoll = async (req, res) => {
   }
 };
 
-// DELETE /api/polls/:id  (admin only)
 const deletePoll = async (req, res) => {
   try {
     const { id } = req.params;
@@ -130,7 +125,6 @@ const deletePoll = async (req, res) => {
   }
 };
 
-// GET /api/polls/:id/results
 const getPollResults = async (req, res) => {
   try {
     const { id } = req.params;
@@ -152,7 +146,6 @@ const getPollResults = async (req, res) => {
 
     const totalVotes = results.rows.reduce((sum, r) => sum + r.vote_count, 0);
 
-    // Add percentage and determine winner
     const options = results.rows.map((r) => ({
       ...r,
       percentage: totalVotes > 0 ? ((r.vote_count / totalVotes) * 100).toFixed(1) : '0.0',
@@ -172,7 +165,6 @@ const getPollResults = async (req, res) => {
   }
 };
 
-// POST /api/polls/upload  (admin only) - file-based poll creation
 const uploadPoll = async (req, res) => {
   const client = await pool.connect();
   try {
@@ -183,7 +175,7 @@ const uploadPoll = async (req, res) => {
     const filePath = req.file.path;
     const ext = path.extname(req.file.originalname).toLowerCase();
 
-    let pollData = {}; // { title: '', options: [] }
+    let pollData = {}; 
 
     if (ext === '.csv') {
       pollData = await parseCSV(filePath);
@@ -201,14 +193,12 @@ const uploadPoll = async (req, res) => {
       return res.status(400).json({ message: 'Unsupported file format' });
     }
 
-    // Cleanup uploaded file
     fs.unlinkSync(filePath);
 
     if (!pollData.title || pollData.options.length < 2) {
       return res.status(400).json({ message: 'File must contain a title and at least 2 options' });
     }
 
-    // Create poll in DB
     await client.query('BEGIN');
 
     const pollResult = await client.query(
@@ -239,7 +229,7 @@ const uploadPoll = async (req, res) => {
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('Upload poll error:', err);
-    // Cleanup file on error
+   
     if (req.file && fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
     }
@@ -249,7 +239,6 @@ const uploadPoll = async (req, res) => {
   }
 };
 
-// CSV Parser helper
 const parseCSV = (filePath) => {
   return new Promise((resolve, reject) => {
     const rows = [];
@@ -266,7 +255,6 @@ const parseCSV = (filePath) => {
   });
 };
 
-// TXT Parser helper  (line 1 = title, remaining lines = options)
 const parseTXT = (filePath) => {
   const lines = fs.readFileSync(filePath, 'utf-8')
     .split('\n')

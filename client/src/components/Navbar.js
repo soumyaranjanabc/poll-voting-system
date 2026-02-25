@@ -22,6 +22,7 @@ const Navbar = () => {
           <>
             <li><Link to="/polls">Polls</Link></li>
             <li><Link to="/my-votes">My Votes</Link></li>
+            <li><Link to="/dsa" style={{ color: '#a5b4fc' }}>🧠 DSA</Link></li>
             {isAdmin && <li><Link to="/admin">Admin</Link></li>}
             <li>
               <span className="navbar-user">

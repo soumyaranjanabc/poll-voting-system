@@ -6,10 +6,10 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const pollRoutes = require('./routes/polls');
 const voteRoutes = require('./routes/votes');
+const dsaRoutes  = require('./routes/dsa');
 
 const app = express();
 
-// Allow all origins — safe for now, tighten later
 app.use(cors({
   origin: true,
   credentials: true,
@@ -22,10 +22,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.use('/api/auth', authRoutes);
+app.use('/api/auth',  authRoutes);
 app.use('/api/polls', pollRoutes);
-app.use('/api/vote', voteRoutes);
+app.use('/api/vote',  voteRoutes);
 app.use('/api/votes', voteRoutes);
+app.use('/api/dsa',   dsaRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
@@ -42,7 +43,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log('Server running on port ' + PORT);
+  console.log('🚀 Server running on port ' + PORT);
 });
 
 module.exports = app;

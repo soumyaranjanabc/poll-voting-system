@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './services/AuthContext';
@@ -15,6 +14,7 @@ import PollResultsPage from './pages/PollResultsPage';
 import CreatePollPage from './pages/CreatePollPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import MyVotesPage from './pages/MyVotesPage';
+import DSADashboardPage from './pages/DSADashboardPage';
 
 import './App.css';
 
@@ -49,6 +49,7 @@ const AppRoutes = () => {
           <Route path="/polls/:id" element={<PrivateRoute><PollDetailPage /></PrivateRoute>} />
           <Route path="/polls/:id/results" element={<PrivateRoute><PollResultsPage /></PrivateRoute>} />
           <Route path="/my-votes" element={<PrivateRoute><MyVotesPage /></PrivateRoute>} />
+          <Route path="/dsa" element={<PrivateRoute><DSADashboardPage /></PrivateRoute>} />
 
           <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
           <Route path="/admin/create-poll" element={<AdminRoute><CreatePollPage /></AdminRoute>} />

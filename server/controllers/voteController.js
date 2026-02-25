@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const { recordVoteActivity } = require('./dsaController');
 
 // POST /api/vote
 const castVote = async (req, res) => {
@@ -10,11 +11,7 @@ const castVote = async (req, res) => {
       return res.status(400).json({ message: 'poll_id and option_id are required' });
     }
 
-    // Check poll exists and is active
-    const pollResult = await pool.query(
-      'SELECT * FROM polls WHERE id = $1',
-      [poll_id]
-    );
+    const pollResult = await pool.query('SELECT * FROM polls WHERE id = $1', [poll_id]);
     if (pollResult.rows.length === 0) {
       return res.status(404).json({ message: 'Poll not found' });
     }
@@ -24,7 +21,6 @@ const castVote = async (req, res) => {
       return res.status(400).json({ message: 'This poll has expired' });
     }
 
-    // Verify option belongs to this poll
     const optionResult = await pool.query(
       'SELECT * FROM poll_options WHERE id = $1 AND poll_id = $2',
       [option_id, poll_id]
@@ -33,15 +29,21 @@ const castVote = async (req, res) => {
       return res.status(400).json({ message: 'Invalid option for this poll' });
     }
 
-    // Insert vote — UNIQUE(user_id, poll_id) constraint prevents duplicates
     await pool.query(
       'INSERT INTO votes (user_id, poll_id, option_id) VALUES ($1, $2, $3)',
       [user_id, poll_id, option_id]
     );
 
+    // Record in Doubly Linked List activity feed
+    recordVoteActivity(
+      user_id,
+      poll_id,
+      optionResult.rows[0].option_text,
+      poll.title
+    );
+
     res.status(201).json({ message: 'Vote cast successfully' });
   } catch (err) {
-    // PostgreSQL unique constraint violation code
     if (err.code === '23505') {
       return res.status(409).json({ message: 'You have already voted on this poll' });
     }
@@ -50,7 +52,7 @@ const castVote = async (req, res) => {
   }
 };
 
-// GET /api/votes/my  — get current user's voting history
+// GET /api/votes/my
 const getMyVotes = async (req, res) => {
   try {
     const result = await pool.query(`

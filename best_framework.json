@@ -1,0 +1,5 @@
+{
+  "title": "Best Frontend Framework",
+  "description": "Vote for your favourite frontend framework in 2025",
+  "options": ["React", "Vue", "Angular", "Svelte", "Next.js"]
+}

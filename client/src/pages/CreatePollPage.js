@@ -39,7 +39,8 @@ const CreatePollPage = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await createPoll({ ...form, options: validOptions });
+      const payload = { ...form, options: validOptions, expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : '' };
+      const res = await createPoll(payload);
       setSuccess('✅ Poll created!');
       setTimeout(() => navigate(`/polls/${res.data.poll.id}`), 1200);
     } catch (err) {

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import API from '../services/api';
 
 const DSADashboardPage = () => {
-  const [activeTab, setActiveTab] = useState('info');
+  const [activeTab, setActiveTab] = useState('trending');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -16,7 +16,6 @@ const DSADashboardPage = () => {
     try {
       let res;
       switch (tab) {
-        case 'info':      res = await API.get('/dsa/info'); break;
         case 'trending':  res = await API.get('/dsa/trending?limit=10'); break;
         case 'search':    res = await API.get(`/dsa/search?q=${extra}`); break;
         case 'activity':  res = await API.get('/dsa/activity?limit=20'); break;
@@ -33,25 +32,29 @@ const DSADashboardPage = () => {
   };
 
   useEffect(() => {
-    fetchData('info');
+    fetchData('trending');
   }, []);
 
   const tabs = [
-    { id: 'info',      label: '📋 Overview',      color: '#6366f1' },
-    { id: 'trending',  label: '🔥 Min-Heap',       color: '#f59e0b' },
-    { id: 'search',    label: '🔍 Binary Search',  color: '#10b981' },
-    { id: 'activity',  label: '🔗 Linked List',    color: '#3b82f6' },
-    { id: 'expiry',    label: '📦 Queue',          color: '#8b5cf6' },
-    { id: 'quicksort', label: '⚡ QuickSort',      color: '#ef4444' },
+    { id: 'trending',  label: '🔥 Trending',      color: '#f59e0b' },
+    { id: 'search',    label: '🔍 Search Polls',  color: '#10b981' },
+    { id: 'activity',  label: '📜 Activity Feed', color: '#3b82f6' },
+    { id: 'expiry',    label: '⏰ Expiring Soon', color: '#8b5cf6' },
+    { id: 'quicksort', label: '📊 Sort Results',  color: '#ef4444' },
   ];
+
+  const switchTab = (tab) => {
+    setActiveTab(tab);
+    if (tab !== 'search' && tab !== 'quicksort') fetchData(tab);
+  };
 
   return (
     <div>
       <div className="flex-between mb-2" style={{ flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 className="page-title" style={{ margin: 0 }}>🧠 DSA Dashboard</h1>
+          <h1 className="page-title" style={{ margin: 0 }}>📊 Explore</h1>
           <p style={{ color: 'var(--gray)', marginTop: '0.25rem' }}>
-            Live demonstration of all data structures & algorithms
+            Trending polls, search, activity feed and more
           </p>
         </div>
         <Link to="/polls" className="btn btn-outline btn-sm">← Back to Polls</Link>
@@ -62,14 +65,14 @@ const DSADashboardPage = () => {
         {tabs.map(tab => (
           <button
             key={tab.id}
-            onClick={() => { setActiveTab(tab.id); fetchData(tab.id); }}
+            onClick={() => switchTab(tab.id)}
             style={{
-              padding: '0.5rem 1rem',
+              padding: '0.55rem 1.1rem',
               borderRadius: '8px',
               border: 'none',
               cursor: 'pointer',
               fontWeight: 600,
-              fontSize: '0.85rem',
+              fontSize: '0.875rem',
               background: activeTab === tab.id ? tab.color : 'var(--light-gray)',
               color: activeTab === tab.id ? 'white' : 'var(--gray)',
               transition: 'all 0.2s',
@@ -80,28 +83,25 @@ const DSADashboardPage = () => {
         ))}
       </div>
 
-      {/* Search Input for Binary Search tab */}
+      {/* Search input */}
       {activeTab === 'search' && (
         <div className="card mb-2">
           <div style={{ display: 'flex', gap: '0.75rem' }}>
             <input
               className="form-control"
-              placeholder="Search poll titles..."
+              placeholder="Type a poll title to search..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && fetchData('search', searchQuery)}
             />
             <button className="btn btn-primary" onClick={() => fetchData('search', searchQuery)}>
-              🔍 Search
+              Search
             </button>
           </div>
-          <p style={{ color: 'var(--gray)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
-            Uses Binary Search O(log n) on alphabetically sorted polls
-          </p>
         </div>
       )}
 
-      {/* Poll ID Input for QuickSort tab */}
+      {/* Poll ID + sort for results */}
       {activeTab === 'quicksort' && (
         <div className="card mb-2">
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
@@ -122,230 +122,239 @@ const DSADashboardPage = () => {
               <option value="percentage">Sort by Percentage</option>
             </select>
             <button className="btn btn-primary" onClick={() => fetchData('quicksort', pollId)}>
-              ⚡ Sort Results
+              Sort Results
             </button>
           </div>
-          <p style={{ color: 'var(--gray)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
-            Uses QuickSort O(n log n) with median-of-three pivot
-          </p>
         </div>
       )}
 
-      {/* Output */}
+      {/* Content */}
       <div className="card">
-        {loading && <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--gray)' }}>⏳ Running algorithm...</div>}
+        {loading && (
+          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--gray)' }}>
+            ⏳ Loading...
+          </div>
+        )}
 
         {data?.error && <div className="alert alert-error">{data.error}</div>}
 
         {!loading && data && !data.error && (
           <>
-            {/* INFO TAB */}
-            {activeTab === 'info' && data.implementations && (
+            {/* TRENDING */}
+            {activeTab === 'trending' && data.trending && (
               <div>
-                <h2 style={{ color: 'var(--dark)', marginBottom: '1.5rem' }}>{data.title}</h2>
-                {data.implementations.map((impl, i) => (
-                  <div key={i} style={{
-                    border: '1px solid var(--border)',
-                    borderRadius: '10px',
-                    padding: '1.25rem',
-                    marginBottom: '1rem',
-                    borderLeft: `4px solid ${tabs[i + 1]?.color || 'var(--primary)'}`,
-                  }}>
-                    <div className="flex-between" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
-                      <h3 style={{ color: 'var(--dark)', margin: 0 }}>{impl.name}</h3>
-                      <code style={{ background: 'var(--light-gray)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem' }}>
-                        {impl.endpoint}
-                      </code>
+                <h3 style={{ marginBottom: '1rem', color: 'var(--dark)' }}>
+                  🔥 Trending Polls
+                  <span style={{ fontSize: '0.8rem', fontWeight: 400, color: 'var(--gray)', marginLeft: '0.75rem' }}>
+                    ranked by votes per hour
+                  </span>
+                </h3>
+                {data.trending.length === 0 ? (
+                  <p style={{ color: 'var(--gray)', textAlign: 'center', padding: '2rem' }}>
+                    No polls yet. Create some polls and vote to see trending!
+                  </p>
+                ) : (
+                  data.trending.map((poll, i) => (
+                    <div key={poll.id} style={{
+                      display: 'flex', alignItems: 'center', gap: '1rem',
+                      padding: '1rem', borderRadius: '10px',
+                      background: i === 0 ? '#fef3c7' : i === 1 ? '#f9fafb' : 'var(--light-gray)',
+                      marginBottom: '0.6rem',
+                      border: i === 0 ? '2px solid #f59e0b' : '1px solid var(--border)',
+                    }}>
+                      <span style={{
+                        fontSize: '1.4rem', fontWeight: 800,
+                        color: i === 0 ? '#f59e0b' : i === 1 ? '#9ca3af' : '#cd7c2f',
+                        minWidth: '2.5rem', textAlign: 'center',
+                      }}>
+                        {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+                      </span>
+                      <div style={{ flex: 1 }}>
+                        <Link to={`/polls/${poll.id}`} style={{ fontWeight: 700, color: 'var(--dark)', textDecoration: 'none', fontSize: '1rem' }}>
+                          {poll.title}
+                        </Link>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--gray)', marginTop: '0.2rem' }}>
+                          {poll.total_votes} votes · {poll.trendingScore} votes/hr
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.3rem' }}>
+                        <span className={`badge ${poll.is_active ? 'badge-active' : 'badge-expired'}`}>
+                          {poll.is_active ? 'Active' : 'Expired'}
+                        </span>
+                        <Link to={`/polls/${poll.id}/results`} className="btn btn-outline btn-sm">
+                          Results
+                        </Link>
+                      </div>
                     </div>
-                    <p style={{ color: 'var(--gray)', margin: '0.5rem 0' }}>{impl.usedFor}</p>
-                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.8rem' }}>
-                      <span>📁 <code>{impl.file}</code></span>
-                      <span>⏱️ Space: <strong>{impl.spaceComplexity}</strong></span>
-                      {Object.entries(impl.timeComplexity).map(([k, v]) => (
-                        <span key={k}>⚡ {k}: <strong>{v}</strong></span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             )}
 
-            {/* TRENDING TAB — MinHeap */}
-            {activeTab === 'trending' && data.trending && (
+            {/* SEARCH */}
+            {activeTab === 'search' && (
               <div>
-                <AlgorithmBadge name={data.algorithm} complexity={data.timeComplexity} desc={data.description} />
-                <h3 style={{ marginBottom: '1rem' }}>🔥 Trending Polls (by votes/hour)</h3>
-                {data.trending.length === 0
-                  ? <p style={{ color: 'var(--gray)' }}>No polls yet. Create some polls and vote!</p>
-                  : data.trending.map((poll, i) => (
+                <h3 style={{ marginBottom: '1rem', color: 'var(--dark)' }}>
+                  🔍 Search Results
+                  {data.query && (
+                    <span style={{ fontSize: '0.85rem', fontWeight: 400, color: 'var(--gray)', marginLeft: '0.75rem' }}>
+                      {data.totalFound} found for "{data.query}"
+                    </span>
+                  )}
+                </h3>
+                {!data.query ? (
+                  <p style={{ color: 'var(--gray)', textAlign: 'center', padding: '2rem' }}>
+                    Type a poll title above and press Search
+                  </p>
+                ) : data.results?.length === 0 ? (
+                  <p style={{ color: 'var(--gray)', textAlign: 'center', padding: '2rem' }}>
+                    No polls found matching "{data.query}"
+                  </p>
+                ) : (
+                  data.results?.map(poll => (
                     <div key={poll.id} style={{
-                      display: 'flex', alignItems: 'center', gap: '1rem',
-                      padding: '0.85rem 1rem', borderRadius: '8px',
-                      background: i === 0 ? '#fef3c7' : 'var(--light-gray)',
-                      marginBottom: '0.5rem',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      padding: '0.9rem 1rem', borderRadius: '10px',
+                      background: 'var(--light-gray)', marginBottom: '0.6rem',
+                      border: '1px solid var(--border)',
                     }}>
-                      <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', minWidth: '2rem' }}>
-                        #{i + 1}
-                      </span>
-                      <div style={{ flex: 1 }}>
+                      <div>
                         <Link to={`/polls/${poll.id}`} style={{ fontWeight: 600, color: 'var(--dark)', textDecoration: 'none' }}>
                           {poll.title}
                         </Link>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--gray)' }}>
-                          {poll.total_votes} votes · Score: {poll.trendingScore} votes/hr
+                        <div style={{ fontSize: '0.8rem', color: 'var(--gray)', marginTop: '0.2rem' }}>
+                          {poll.total_votes} votes · by {poll.creator_name}
                         </div>
                       </div>
-                      <span className={`badge ${poll.is_active ? 'badge-active' : 'badge-expired'}`}>
-                        {poll.is_active ? 'Active' : 'Expired'}
-                      </span>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <Link to={`/polls/${poll.id}`} className="btn btn-primary btn-sm">Vote</Link>
+                        <Link to={`/polls/${poll.id}/results`} className="btn btn-outline btn-sm">Results</Link>
+                      </div>
                     </div>
                   ))
-                }
+                )}
               </div>
             )}
 
-            {/* SEARCH TAB — Binary Search */}
-            {activeTab === 'search' && (
-              <div>
-                <AlgorithmBadge name={data.algorithm} complexity={data.timeComplexity} desc={data.description} />
-                <p style={{ color: 'var(--gray)', marginBottom: '1rem' }}>
-                  Found <strong>{data.totalFound}</strong> of {data.totalPolls} polls matching "{data.query}"
-                </p>
-                {data.results?.length === 0
-                  ? <p style={{ color: 'var(--gray)' }}>No polls match your search.</p>
-                  : data.results?.map(poll => (
-                    <div key={poll.id} style={{ padding: '0.85rem', borderRadius: '8px', background: 'var(--light-gray)', marginBottom: '0.5rem' }}>
-                      <Link to={`/polls/${poll.id}`} style={{ fontWeight: 600, color: 'var(--dark)', textDecoration: 'none' }}>
-                        {poll.title}
-                      </Link>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--gray)' }}>{poll.total_votes} votes</div>
-                    </div>
-                  ))
-                }
-              </div>
-            )}
-
-            {/* ACTIVITY TAB — Linked List */}
+            {/* ACTIVITY FEED */}
             {activeTab === 'activity' && (
               <div>
-                <AlgorithmBadge name={data.algorithm} complexity={data.timeComplexity} desc={data.description} />
-                <h3 style={{ marginBottom: '1rem' }}>🔗 Recent Vote Activity</h3>
-                {data.activities?.length === 0
-                  ? <p style={{ color: 'var(--gray)' }}>No activity yet. Cast some votes to see the feed!</p>
-                  : data.activities?.map((a, i) => (
+                <h3 style={{ marginBottom: '1rem', color: 'var(--dark)' }}>
+                  📜 Recent Activity
+                  <span style={{ fontSize: '0.8rem', fontWeight: 400, color: 'var(--gray)', marginLeft: '0.75rem' }}>
+                    live vote feed
+                  </span>
+                </h3>
+                {data.activities?.length === 0 ? (
+                  <p style={{ color: 'var(--gray)', textAlign: 'center', padding: '2rem' }}>
+                    No activity yet. Cast some votes to see the live feed!
+                  </p>
+                ) : (
+                  data.activities?.map((a, i) => (
                     <div key={i} style={{
                       display: 'flex', gap: '1rem', alignItems: 'flex-start',
-                      padding: '0.75rem', borderRadius: '8px',
-                      background: 'var(--light-gray)', marginBottom: '0.5rem',
+                      padding: '0.85rem 1rem', borderRadius: '10px',
+                      background: i === 0 ? '#eff6ff' : 'var(--light-gray)',
+                      marginBottom: '0.5rem',
+                      border: '1px solid var(--border)',
                     }}>
-                      <span style={{ fontSize: '1.25rem' }}>🗳️</span>
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>
-                          Voted "<strong>{a.optionText}</strong>" on {a.pollTitle}
+                      <span style={{ fontSize: '1.4rem' }}>🗳️</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--dark)' }}>
+                          Voted <span style={{ color: 'var(--primary)' }}>"{a.optionText}"</span>
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--gray)' }}>
-                          {new Date(a.timestamp).toLocaleTimeString()}
+                        <div style={{ fontSize: '0.8rem', color: 'var(--gray)', marginTop: '0.2rem' }}>
+                          on <strong>{a.pollTitle}</strong> · {new Date(a.timestamp).toLocaleTimeString()}
                         </div>
                       </div>
                     </div>
                   ))
-                }
+                )}
               </div>
             )}
 
-            {/* EXPIRY TAB — Queue */}
+            {/* EXPIRY QUEUE */}
             {activeTab === 'expiry' && (
               <div>
-                <AlgorithmBadge name={data.algorithm} complexity={data.timeComplexity} desc={data.description} />
-                <h3 style={{ marginBottom: '1rem' }}>📦 Poll Expiry Queue ({data.queueSize} in queue)</h3>
-                {data.expiringPolls?.length === 0
-                  ? <p style={{ color: 'var(--gray)' }}>No polls expiring soon in the queue.</p>
-                  : data.expiringPolls?.map((item, i) => (
+                <h3 style={{ marginBottom: '1rem', color: 'var(--dark)' }}>
+                  ⏰ Expiring Soon
+                  <span style={{ fontSize: '0.8rem', fontWeight: 400, color: 'var(--gray)', marginLeft: '0.75rem' }}>
+                    {data.queueSize} polls in queue
+                  </span>
+                </h3>
+                {data.expiringPolls?.length === 0 ? (
+                  <p style={{ color: 'var(--gray)', textAlign: 'center', padding: '2rem' }}>
+                    No polls expiring soon. 
+                  </p>
+                ) : (
+                  data.expiringPolls?.map((item, i) => (
                     <div key={i} style={{
                       display: 'flex', gap: '1rem', alignItems: 'center',
-                      padding: '0.85rem', borderRadius: '8px',
-                      background: 'var(--light-gray)', marginBottom: '0.5rem',
+                      padding: '0.9rem 1rem', borderRadius: '10px',
+                      background: i === 0 ? '#fef2f2' : 'var(--light-gray)',
+                      marginBottom: '0.6rem',
+                      border: i === 0 ? '1px solid #fecaca' : '1px solid var(--border)',
                     }}>
-                      <span style={{ fontWeight: 800, color: 'var(--primary)' }}>#{i + 1}</span>
-                      <div>
+                      <span style={{ fontSize: '1.4rem' }}>⏳</span>
+                      <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 600 }}>{item.title}</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--danger)' }}>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--danger)', marginTop: '0.2rem' }}>
                           Expires: {new Date(item.expiresAt).toLocaleString()}
                         </div>
                       </div>
+                      <span style={{ fontWeight: 700, color: 'var(--gray)', fontSize: '0.8rem' }}>
+                        #{i + 1} in queue
+                      </span>
                     </div>
                   ))
-                }
+                )}
               </div>
             )}
 
-            {/* QUICKSORT TAB */}
+            {/* SORT RESULTS */}
             {activeTab === 'quicksort' && data.results && (
               <div>
-                <AlgorithmBadge name={data.algorithm} complexity={data.timeComplexity} desc={`Sorted by ${data.sortedBy} (${data.order})`} />
-                <h3 style={{ marginBottom: '1rem' }}>⚡ Sorted: {data.poll?.title}</h3>
+                <h3 style={{ marginBottom: '1rem', color: 'var(--dark)' }}>
+                  📊 {data.poll?.title}
+                  <span style={{ fontSize: '0.8rem', fontWeight: 400, color: 'var(--gray)', marginLeft: '0.75rem' }}>
+                    {data.totalVotes} total votes · sorted by {data.sortedBy === 'vote_count' ? 'votes' : 'percentage'}
+                  </span>
+                </h3>
                 {data.winner && (
                   <div className="winner-banner" style={{ marginBottom: '1rem' }}>
-                    🏆 Winner: <strong>{data.winner.option_text}</strong> — {data.winner.vote_count} votes
+                    🏆 Leading: <strong>{data.winner.option_text}</strong> — {data.winner.vote_count} votes ({data.winner.percentage}%)
                   </div>
                 )}
                 {data.results.map((r, i) => (
-                  <div key={r.id} style={{
-                    display: 'flex', gap: '1rem', alignItems: 'center',
-                    padding: '0.75rem 1rem', borderRadius: '8px',
-                    background: i === 0 ? '#eef2ff' : 'var(--light-gray)',
-                    marginBottom: '0.5rem',
-                    border: i === 0 ? '2px solid var(--primary)' : '1px solid var(--border)',
-                  }}>
-                    <span style={{ fontWeight: 800, color: 'var(--primary)', minWidth: '1.5rem' }}>#{i + 1}</span>
-                    <div style={{ flex: 1, fontWeight: 600 }}>{r.option_text}</div>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--gray)' }}>
-                      {r.vote_count} votes · {r.percentage}%
+                  <div key={r.id}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.3rem' }}>
+                      <span>{i === 0 ? '🏆 ' : `#${i + 1} `}{r.option_text}</span>
+                      <span>{r.vote_count} votes · {r.percentage}%</span>
+                    </div>
+                    <div style={{ background: 'var(--light-gray)', borderRadius: '20px', height: '10px', marginBottom: '0.85rem', overflow: 'hidden' }}>
+                      <div style={{
+                        height: '100%', borderRadius: '20px',
+                        background: i === 0 ? 'linear-gradient(90deg, var(--success), #059669)' : 'linear-gradient(90deg, var(--primary), var(--primary-dark))',
+                        width: `${r.percentage}%`,
+                        transition: 'width 0.8s ease',
+                      }} />
                     </div>
                   </div>
                 ))}
               </div>
+            )}
+
+            {/* Empty quicksort state */}
+            {activeTab === 'quicksort' && !data.results && (
+              <p style={{ color: 'var(--gray)', textAlign: 'center', padding: '2rem' }}>
+                Enter a Poll ID above to sort its results
+              </p>
             )}
           </>
         )}
       </div>
-
-      {/* Raw JSON Output */}
-      {!loading && data && !data.error && (
-        <details style={{ marginTop: '1rem' }}>
-          <summary style={{ cursor: 'pointer', color: 'var(--gray)', fontSize: '0.875rem', padding: '0.5rem' }}>
-            🔧 View Raw API Response (JSON)
-          </summary>
-          <pre style={{
-            background: '#1e1b4b', color: '#a5b4fc', padding: '1rem',
-            borderRadius: '8px', fontSize: '0.75rem', overflow: 'auto',
-            maxHeight: '300px', marginTop: '0.5rem',
-          }}>
-            {JSON.stringify(data, null, 2)}
-          </pre>
-        </details>
-      )}
     </div>
   );
 };
-
-// ── Reusable algorithm badge component ────────────────
-const AlgorithmBadge = ({ name, complexity, desc }) => (
-  <div style={{
-    background: 'linear-gradient(135deg, #1e1b4b, #312e81)',
-    color: 'white', borderRadius: '10px', padding: '1rem 1.25rem',
-    marginBottom: '1.25rem', fontSize: '0.875rem',
-  }}>
-    <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '0.25rem' }}>
-      🧠 Algorithm: {name}
-    </div>
-    <div style={{ opacity: 0.8 }}>{desc}</div>
-    {complexity && (
-      <div style={{ marginTop: '0.4rem', opacity: 0.7, fontSize: '0.8rem' }}>
-        ⏱️ {typeof complexity === 'string' ? complexity : JSON.stringify(complexity)}
-      </div>
-    )}
-  </div>
-);
 
 export default DSADashboardPage;

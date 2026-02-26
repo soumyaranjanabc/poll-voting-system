@@ -14,8 +14,7 @@ import { Pie, Bar } from 'react-chartjs-2';
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
 const COLORS = [
-  '#6366f1', '#f59e0b', '#10b981', '#ef4444',
-  '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6',
+  '#6366f1', '#f59e0b', '#10b981', '#ef4444','#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6',
   '#f97316', '#84cc16',
 ];
 

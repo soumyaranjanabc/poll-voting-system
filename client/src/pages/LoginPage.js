@@ -70,9 +70,9 @@ const LoginPage = () => {
           </button>
         </form>
 
-        <div className="alert alert-info mt-2" style={{ fontSize: '0.8rem' }}>
+        {/* <div className="alert alert-info mt-2" style={{ fontSize: '0.8rem' }}>
           Demo admin: <strong>admin@pollsystem.com</strong> / <strong>password</strong>
-        </div>
+        </div> */}
 
         <p className="auth-link">
           Don't have an account? <Link to="/register">Register here</Link>

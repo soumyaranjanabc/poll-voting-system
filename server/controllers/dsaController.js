@@ -6,9 +6,6 @@ const { PollExpiryQueue } = require('../dsa/Queue');
 const { sortPollResults } = require('../dsa/QuickSort');
 
 const expiryQueue = new PollExpiryQueue();
-
-// ── GET /api/dsa/trending ─────────────────────────────
-// Uses MinHeap to rank polls by votes-per-hour score
 const getTrendingPolls = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 5;
@@ -24,8 +21,6 @@ const getTrendingPolls = async (req, res) => {
     `);
 
     const polls = result.rows;
-
-    // Build MinHeap with trending scores
     const heap = new MinHeap();
     polls.forEach(poll => {
       const score = calculateTrendingScore({
@@ -49,9 +44,6 @@ const getTrendingPolls = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch trending polls' });
   }
 };
-
-// ── GET /api/dsa/search?q=query ───────────────────────
-// Uses Binary Search on sorted poll titles
 const searchPollsHandler = async (req, res) => {
   try {
     const { q } = req.query;
@@ -80,9 +72,6 @@ const searchPollsHandler = async (req, res) => {
     res.status(500).json({ message: 'Search failed' });
   }
 };
-
-// ── GET /api/dsa/activity ─────────────────────────────
-// Uses Doubly Linked List to serve recent vote activity
 const getActivityFeed = (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
@@ -100,9 +89,6 @@ const getActivityFeed = (req, res) => {
     res.status(500).json({ message: 'Failed to fetch activity' });
   }
 };
-
-// ── GET /api/dsa/expiry-queue ─────────────────────────
-// Uses Queue to show polls nearing expiry in FIFO order
 const getExpiryQueue = async (req, res) => {
   try {
     const result = await pool.query(`
@@ -111,9 +97,7 @@ const getExpiryQueue = async (req, res) => {
       ORDER BY expires_at ASC
     `);
 
-    const withinMinutes = parseInt(req.query.within) || 1440; // default 24 hours
-
-    // ✅ FIX: Build a fresh queue on every request to prevent duplicates
+    const withinMinutes = parseInt(req.query.within) || 1440; 
     const { Queue } = require('../dsa/Queue');
     const freshQueue = new Queue();
     const now = new Date();
@@ -144,8 +128,6 @@ const getExpiryQueue = async (req, res) => {
   }
 };
 
-// ── GET /api/dsa/results/:id?sortBy=vote_count&order=desc ──
-// Uses QuickSort to sort poll results
 const getSortedResults = async (req, res) => {
   try {
     const { id } = req.params;
@@ -187,8 +169,6 @@ const getSortedResults = async (req, res) => {
   }
 };
 
-// ── GET /api/dsa/info ─────────────────────────────────
-// Overview of all DSA used
 const getDSAInfo = (req, res) => {
   res.json({
     title: 'DSA Implementations in Poll Voting System',
@@ -236,8 +216,6 @@ const getDSAInfo = (req, res) => {
     ],
   });
 };
-
-// ── Helper: record activity (called from vote controller) ─
 const recordVoteActivity = (userId, pollId, optionText, pollTitle) => {
   addActivity({
     type: 'vote',
